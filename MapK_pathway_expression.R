@@ -36,6 +36,82 @@ liver_div_plast_mapk %>%
   select(gene_name) %>% 
   write_tsv('Liver_mapk_ecotemp_divergence.txt')
 
+liver_mapk_genes = liver_div_plast_mapk %>% 
+  select(ensemble_name,, 
+         gene_name) %>% 
+  rename(GeneID = ensemble_name)
+
+# limma -------------------------------------------------------------------
+
+liver_exp_data = read_table2('~/Parsons_Postdoc/Bethany_gene_expression/F1_lab_liver_GE_over10M.tsv') %>% 
+  rename(ensemble_id = GeneID)
+
+liver_meta_data = read_csv("~/Parsons_Postdoc/Bethany_gene_expression/F1_labfish_sampledata10M_liver.csv") %>% 
+  unite(col = ecotemp, 
+        c('popeco', 
+          'temp'), 
+        sep = '_', 
+        remove = F) %>% 
+  unite(col = ecotemp_simple, 
+        c('ecotype', 
+          'temp'), 
+        sep = '_', 
+        remove = F)
+
+gene_name_data = annotation_data %>% 
+  ungroup() %>% 
+  select(ensemble_id, 
+         gene_name)
+
+liver_exp_data = inner_join(gene_name_data,
+           liver_exp_data,
+           by = 'ensemble_id') %>% 
+  select(-ensemble_id)
+
+liver_mapk_counts = liver_exp_data %>% 
+  filter(gene_name %in% mapk_pathway$gene_name)
+
+
+liver_mapk_dge = DGEList(liver_mapk_counts)
+liver_mapk_norm = calcNormFactors(liver_mapk_dge)
+
+mm = model.matrix(~0 + ecotemp_simple, 
+                  data = liver_meta_data)
+
+liver_mapk_keep = filterByExpr(liver_mapk_norm, 
+                          min.count = 10,
+                          mm)
+sum(liver_mapk_keep) # number of genes retai
+
+liver_mapk_keep = liver_mapk_norm[liver_mapk_keep,]
+
+## EdgeR model
+liver_mapk_dispersion = estimateDisp(liver_mapk_keep, 
+                                mm) 
+
+contrast = makeContrasts(cold_plast = ecotemp_simpleC_12oC - ecotemp_simpleC_18oC, 
+                         warm_plast = ecotemp_simpleW_12oC - ecotemp_simpleW_18oC,
+                         eco_div_12 = ecotemp_simpleC_12oC - ecotemp_simpleW_12oC, 
+                         eco_div_18 = ecotemp_simpleC_18oC - ecotemp_simpleW_18oC, 
+                         levels = mm)
+
+liver_mapk_glm_fit = glmQLFit(liver_mapk_dispersion, 
+                         # contrast = ecotype.div.brain,
+                         design = mm)
+
+liver_mapk_glm_test = glmQLFTest(liver_mapk_glm_fit, 
+                            contrast = contrast)
+
+liver_mapk_edger_results = topTags(liver_mapk_glm_test, 
+                              n = Inf,
+                              adjust.method = 'bonferroni', 
+                              p.value = 0.05)
+
+brain_edger_results$table %>% 
+  as.data.frame() %>% 
+  as_tibble() %>% 
+  write_csv('Brain_EdgeR_GLMQLFTest_results.csv')
+
 
 # annotation data ---------------------------------------------------------
 
