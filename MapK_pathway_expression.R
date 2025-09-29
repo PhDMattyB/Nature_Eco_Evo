@@ -95,6 +95,20 @@ contrast = makeContrasts(cold_plast = ecotemp_simpleC_12oC - ecotemp_simpleC_18o
                          eco_div_18 = ecotemp_simpleC_18oC - ecotemp_simpleW_18oC, 
                          levels = mm)
 
+# contrast = makeContrasts(ASHN_cold_plast = ecotempASHNC_12oC - ecotempASHNC_18oC, 
+#                          ASHN_warm_plast = ecotempASHNW_12oC - ecotempASHNW_18oC,
+#                          ASHN_eco_div_12 = ecotempASHNC_12oC - ecotempASHNW_12oC, 
+#                          ASHN_eco_div_18 = ecotempASHNC_18oC - ecotempASHNW_18oC,
+#                          MYV_cold_plast = ecotempMYVC_12oC - ecotempMYVC_18oC, 
+#                          MYV_warm_plast = ecotempMYVW_12oC - ecotempMYVW_18oC, 
+#                          MYV_eco_div_12 = ecotempMYVC_12oC - ecotempMYVW_12oC, 
+#                          MYV_eco_div_18 = ecotempMYVC_18oC - ecotempMYVW_12oC,
+#                          SKR_cold_plast = ecotempSKRC_12oC - ecotempSKRC_18oC, 
+#                          SKR_warm_plast = ecotempSKRW_12oC - ecotempSKRW_18oC, 
+#                          SKR_eco_div_12 = ecotempSKRC_12oC - ecotempSKRW_12oC, 
+#                          SKR_eco_div_18 = ecotempSKRC_18oC - ecotempSKRW_18oC,
+#                          levels = mm)
+
 liver_mapk_glm_fit = glmQLFit(liver_mapk_dispersion, 
                          # contrast = ecotype.div.brain,
                          design = mm)
@@ -107,10 +121,31 @@ liver_mapk_edger_results = topTags(liver_mapk_glm_test,
                               adjust.method = 'bonferroni', 
                               p.value = 0.05)
 
-brain_edger_results$table %>% 
+liver_mapk_edger_results$table %>% 
   as.data.frame() %>% 
   as_tibble() %>% 
-  write_csv('Brain_EdgeR_GLMQLFTest_results.csv')
+  write_csv('Liver_mapk_edger_results.csv')
+
+
+# ## limma model
+liver_mapk_voom = voom(liver_mapk_keep, 
+                  mm, 
+                  plot = T)
+# 
+liver_mapk_fit_limma <- limma::lmFit(liver_mapk_voom, 
+                                contrast = contrast,
+                                design=mm)
+liver_mapk_fit_limma_contrast = contrasts.fit(liver_mapk_fit_limma, 
+                                         contrasts = contrast)
+
+
+liver_mapk_fit_ebayes = eBayes(liver_mapk_fit_limma_contrast)
+
+liver_mapk_limma_results = topTable(liver_mapk_fit_ebayes, 
+                               n = Inf, 
+                               adjust.method = 'bonferroni', 
+                               p.value = 0.05)
+
 
 
 # annotation data ---------------------------------------------------------
