@@ -295,6 +295,8 @@ liver_mapk_means = liver_mapk_log_norm_counts_clean %>%
            ecotype) %>% 
   summarize(mean_expression = mean(log_count))
   
+liver_mapk_means$gene_name = toupper(liver_mapk_means$gene_name)
+
 expression_cols = c('#003049', 
                         '#c1121f')
 
