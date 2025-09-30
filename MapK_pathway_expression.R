@@ -41,6 +41,9 @@ liver_mapk_genes = liver_div_plast_mapk %>%
          gene_name) %>% 
   rename(GeneID = ensemble_name)
 
+liver_mapk_sig_genes = liver_div_plast_mapk %>% 
+  select(gene_name)
+
 # limma -------------------------------------------------------------------
 
 liver_exp_data = read_table2('~/Parsons_Postdoc/Bethany_gene_expression/F1_lab_liver_GE_over10M.tsv') %>% 
@@ -250,8 +253,9 @@ liver_mapk_log_norm_counts_clean = liver_mapk_norm_counts_log %>%
   pivot_longer(cols = !(gene_name), 
                names_to = 'samples', 
                values_to = 'log_count') %>% 
-  filter(gene_name %in% c('braf', 
-                          'prkcg')) %>% 
+  filter(gene_name %in% liver_mapk_sig_genes$gene_name) %>% 
+  # filter(gene_name %in% c('braf', 
+  #                         'prkcg')) %>% 
   separate(col = samples, 
            into = c('sample_num', 
                     'ecopop', 
@@ -291,15 +295,20 @@ liver_mapk_means = liver_mapk_log_norm_counts_clean %>%
            ecotype) %>% 
   summarize(mean_expression = mean(log_count))
   
-liver_mapk_log_norm_counts_clean %>% 
-  ggplot(aes(x = temp, 
-             y = log_count, 
-             col = ecotype))+
-  geom_point()+
+  ggplot()+
+  # geom_point(data = liver_mapk_log_norm_counts_clean, 
+    # aes(x = temp, 
+  #               y = log_count, 
+  #               col = ecotype))+
   geom_point(data = liver_mapk_means,
              aes(x = temp, 
-                 y = mean_expression), 
-             col = 'black') + 
+                 y = mean_expression, 
+                 group = ecotype, 
+                 col = ecotype)) + 
+  geom_line(data = liver_mapk_means, 
+            aes(x = temp, 
+                y = mean_expression, 
+                group = ecotype))+
   facet_grid(~gene_name)
 
 
