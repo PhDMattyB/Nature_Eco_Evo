@@ -234,6 +234,75 @@ head(resorderd, 2370)
 write.csv(resorderd, file = "DESeq_Infection_Full_StringParam_new.csv") ##2369 affected
 
 
+# norm count graph --------------------------------------------------------
+
+liver_mapk_counts_norm = read_tsv('Liver_mapk_Normalized_counts.txt')
+liver_mapk_genes = read_table2('Liver_mapk_count_data.txt') %>% 
+  select(gene_name)
+
+liver_mapk_norm_counts_log = bind_cols(liver_mapk_genes, 
+                                   liver_mapk_counts_norm) %>% 
+  # filter(gene_name %in% c('braf', 
+  #                         'prkcg')) %>% 
+  mutate(across(where(is.numeric), ~ log(.x)))
+
+liver_mapk_log_norm_counts_clean = liver_mapk_norm_counts_log %>% 
+  pivot_longer(cols = !(gene_name), 
+               names_to = 'samples', 
+               values_to = 'log_count') %>% 
+  filter(gene_name %in% c('braf', 
+                          'prkcg')) %>% 
+  separate(col = samples, 
+           into = c('sample_num', 
+                    'ecopop', 
+                    'temp'), 
+           sep = '_') %>% 
+  select(-sample_num) %>% 
+  separate(col = temp, 
+           into = c('temp', 
+                    'fam', 
+                    'num'))%>% 
+  mutate(.data = .,
+         ecotype = as.factor(case_when(
+           ecopop == 'ASHNW' ~ 'Warm',
+           ecopop == 'ASHNC' ~ 'Cold',
+           ecopop == 'SKRW' ~ 'Warm', 
+           ecopop == 'SKRC' ~ 'Cold', 
+           ecopop == 'MYVW' ~ 'Warm', 
+           ecopop == 'MYVC' ~ 'Cold'))) %>% 
+  mutate(.data = ., 
+         pop = as.factor(case_when(
+           ecopop == 'ASHNW' ~ 'ASHN', 
+           ecopop == 'ASHNC' ~ 'ASHN', 
+           ecopop == 'SKRW' ~ 'SKR', 
+           ecopop == 'SKRC' ~ 'SKR', 
+           ecopop == 'MYVW' ~ 'MYV', 
+           ecopop == 'MYVC' ~ 'MYV'
+         ))) %>% 
+  unite(col = ecotemp, 
+        c('ecotype', 
+          'temp'), 
+        sep = '_', 
+        remove = F)
+
+liver_mapk_means = liver_mapk_log_norm_counts_clean %>% 
+  group_by(gene_name,
+           temp, 
+           ecotype) %>% 
+  summarize(mean_expression = mean(log_count))
+  
+liver_mapk_log_norm_counts_clean %>% 
+  ggplot(aes(x = temp, 
+             y = log_count, 
+             col = ecotype))+
+  geom_point()+
+  geom_point(data = liver_mapk_means,
+             aes(x = temp, 
+                 y = mean_expression), 
+             col = 'black') + 
+  facet_grid(~gene_name)
+
+
 # annotation data ---------------------------------------------------------
 
 
