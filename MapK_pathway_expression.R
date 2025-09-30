@@ -79,7 +79,7 @@ mm = model.matrix(~0 + ecotemp_simple,
                   data = liver_meta_data)
 
 liver_mapk_keep = filterByExpr(liver_mapk_norm, 
-                          min.count = 10,
+                          min.count = 2,
                           mm)
 sum(liver_mapk_keep) # number of genes retai
 
@@ -146,6 +146,92 @@ liver_mapk_limma_results = topTable(liver_mapk_fit_ebayes,
                                adjust.method = 'bonferroni', 
                                p.value = 0.05)
 
+
+# DESEQ MAPK gene expression ----------------------------------------------
+
+library(DESeq2)
+
+# liver_exp_data = read_table2('~/Parsons_Postdoc/Bethany_gene_expression/F1_lab_liver_GE_over10M.tsv') %>% 
+#   rename(ensemble_id = GeneID)
+
+liver_mapk_counts = read_table2('Liver_mapk_count_data.txt') %>% 
+  select(-gene_name)
+
+
+liver_meta_data = read_csv("~/Parsons_Postdoc/Bethany_gene_expression/F1_labfish_sampledata10M_liver.csv") %>% 
+  unite(col = ecotemp, 
+        c('popeco', 
+          'temp'), 
+        sep = '_', 
+        remove = F) %>% 
+  unite(col = ecotemp_simple, 
+        c('ecotype', 
+          'temp'), 
+        sep = '_', 
+        remove = F)
+
+# dds = DESeqDataSetFromMatrix(countData = liver_mapk_counts, 
+#                              colData = liver_meta_data, 
+#                              design = ~ ecotemp_simple)
+# dds = estimateSizeFactors(dds)
+# dds = estimateDispersions(dds)
+# 
+# vst = getVarianceStabilizedData(dds)
+# 
+# vst %>% 
+#   as_tibble() %>% 
+#   write_tsv('Liver_mapk_Normalized_counts.txt')
+
+liver_mapk_counts_norm = read_tsv('Liver_mapk_Normalized_counts.txt')
+liver_mapk_counts = read_table2('Liver_mapk_count_data.txt') %>% 
+  select(-gene_name)
+liver_mapk_genes = read_table2('Liver_mapk_count_data.txt') %>% 
+  select(gene_name)
+
+
+
+dds = model.matrix(~ ecotype + temp + ecotype*temp, 
+                   liver_meta_data)
+# colnames(dds)
+# unname(dds)
+# all.zero <- apply(dds, 2, function(x) all (x==0))
+# all.zero
+# idx <- which(all.zero)
+# dds <- dds[,-idx]
+# unname(dds)
+# lapply(liver_meta_data, class)
+
+##now model it, following suggestions for large models with rows which do not converge in beta##
+object = DESeqDataSetFromMatrix(countData = liver_mapk_counts, 
+                                colData = liver_meta_data, 
+                                design = ~ ecotype + temp + ecotype*temp, 
+                                ignoreRank = T)
+##filter out rows where gene is expressed in less than half of the samples##
+object <- estimateSizeFactors(object)
+# nc <- counts(object, normalized=T)
+# object <- object[ rowSums(nc > 0) >= 163 ]
+
+##actually run the analysis; do it in two steps to increase power and get more rows to converge##
+object <- estimateDispersions(object)
+#save(colData, countData, dds, object, file = "Stickeblack-Frozed.RData")
+#load("Stickeblack-Frozed.RData")
+dds1 <- nbinomWaldTest(object, maxit=999)
+
+
+res <- results(dds1)
+
+res %>% 
+  as_tibble() %>%
+  bind_cols(., 
+            liver_mapk_genes) %>% 
+  filter(pvalue < 0.05)
+
+
+##Look at Infection##
+resinfect <- results(dds1,contrast=list(c("worm_presentTRUE")))
+resorderd <-resinfect[order(resinfect$padj),] 
+head(resorderd, 2370)
+write.csv(resorderd, file = "DESeq_Infection_Full_StringParam_new.csv") ##2369 affected
 
 
 # annotation data ---------------------------------------------------------
