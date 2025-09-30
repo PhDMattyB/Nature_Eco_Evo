@@ -295,7 +295,10 @@ liver_mapk_means = liver_mapk_log_norm_counts_clean %>%
            ecotype) %>% 
   summarize(mean_expression = mean(log_count))
   
-  ggplot()+
+expression_cols = c('#003049', 
+                        '#c1121f')
+
+ liver_mapk_expression_plot = ggplot()+
   # geom_point(data = liver_mapk_log_norm_counts_clean, 
     # aes(x = temp, 
   #               y = log_count, 
@@ -304,14 +307,32 @@ liver_mapk_means = liver_mapk_log_norm_counts_clean %>%
              aes(x = temp, 
                  y = mean_expression, 
                  group = ecotype, 
-                 col = ecotype)) + 
+                 col = ecotype), 
+             size = 2) + 
   geom_line(data = liver_mapk_means, 
             aes(x = temp, 
                 y = mean_expression, 
                 group = ecotype))+
-  facet_grid(~gene_name)
+  scale_color_manual(values = expression_cols)+
+    labs(y = 'log(normalized counts)')+
+  facet_grid(~gene_name)+
+    theme(legend.position = 'none', 
+          axis.title.x = element_blank(), 
+          axis.title.y = element_text(size = 14), 
+          axis.text = element_text(size = 12), 
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          # panel.grid.major = element_blank(), 
+          strip.background = element_rect(fill = 'white'))
 
-
+ ggsave('Liver_Mapk_expression_temp_divergence.svg', 
+        plot = liver_mapk_expression_plot, 
+        dpi = 'retina', 
+        units = 'cm', 
+        width = 40, 
+        height = 10)
+ 
+ 
 # annotation data ---------------------------------------------------------
 
 
