@@ -13,6 +13,8 @@ library(BiocManager)
 library(ggtree)
 library(ape)
 library(tidytree)
+library(ggtreeExtra)
+library(ggnewscale)
 
 tree_data = read.tree("GBS-NJ-TREEboot_main.nwk")
 
@@ -104,7 +106,12 @@ tree_data_tidy = as_tibble(tree_data) %>%
            popeco == 'SKRW' ~ 'Allopatric',
            popeco == 'STNST' ~ 'Sympatric',
            popeco == 'THNGC' ~ 'Sympatric',
-           popeco == 'THNGW' ~ 'Sympatric')))
+           popeco == 'THNGW' ~ 'Sympatric'))) %>% 
+  unite(sample_id, 
+        c('popeco', 
+          'ind'), 
+        sep = '_', 
+        remove = F)
 
 # tree_data_tidy %>% 
 #   group_by(popeco) %>% 
@@ -118,12 +125,12 @@ phylo_data = as.treedata(tree_data_tidy)
 # ggtree(phylo_data, 
 #        layout="daylight")
 
-ggtree(phylo_data, 
-       layout="daylight", 
-       branch.length = 'none')+
-  # geom_tiplab(aes(color = popeco), 
-  #             as_ylab=TRUE)
-  geom_point(aes(color = Population))
+# ggtree(phylo_data, 
+#        layout="daylight", 
+#        branch.length = 'none')+
+#   # geom_tiplab(aes(color = popeco), 
+#   #             as_ylab=TRUE)
+#   geom_point(aes(color = Population))
 # +
 #   geom_cladelab(node=489, 
 #                 label="Marine", 
@@ -135,10 +142,33 @@ ggtree(phylo_data,
 #              size = 2)
 
 ggtree(phylo_data, 
-       layout='circular') + 
+       layout='circular', 
+       aes(colour = Population)) + 
   xlim(-10, NA)+
-  geom_point(aes(color = Ecotype), 
-             size=3)
+  # geom_tippoint(aes(colour = Population),
+  #                             alpha=0) +
+  # geom_tiplab(aes(colour = Population),
+  #             align=TRUE,
+  #             # linetype=3,
+  #             size=2,
+  #             linesize=0.2)+
+  ggtreeExtra::geom_fruit(geom=geom_tile,
+    mapping = aes(x = Ecotype, 
+                y = ind, 
+                fill = Ecotype)) +
+  scale_fill_manual(
+    name="Ecotype",
+    values=c("#595959", "#B30000", "#020099", "#E6E6E6"),
+    na.translate=FALSE,
+    guide=guide_legend(keywidth=0.5,
+                       keyheight=0.5,
+                       order=3
+    )
+  ) +
+  new_scale_fill()
+  
+  
+  geom_point(aes(color = sample_id))
   geom_text2(aes(label = popeco, 
                  color = popeco), 
              angle = 90, 
