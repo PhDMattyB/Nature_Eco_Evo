@@ -150,17 +150,39 @@ phylo_data = as.treedata(tree_data_tidy)
 #             size=2,
 #             linesize=0.2)+
 
+
+population_pal2 = c('#277da1',
+                   '#adb5bd',
+                   '#9d4edd',
+                   '#EDAE49',
+                   '#b5e48c',
+                   '#adb5bd',
+                   '#adb5bd',
+                   '#adb5bd',
+                   '#adb5bd',
+                   '#D1495B',
+                   '#adb5bd',
+                   '#b5e48c',
+                   '#adb5bd',
+                   '#adb5bd',
+                   '#adb5bd',
+                   '#adb5bd',
+                   '#7ae7c7',
+                   '#adb5bd',
+                   '#adb5bd')
+
 ggtree(phylo_data, 
        layout='circular', 
        aes(colour = Population)) + 
   xlim(-10, NA)+
-  ggtreeExtra::geom_fruit(geom=geom_tile,
+  scale_color_manual(values = population_pal2)+
+  geom_fruit(geom=geom_tile,
     mapping = aes(x = Ecotype, 
                 y = ind, 
                 fill = Ecotype)) +
   scale_fill_manual(
     name="Ecotype",
-    values=c("#595959", "#B30000", "#020099", "#E6E6E6"),
+    values=c("#003049", "#c1121f", "#b5e48c"),
     na.translate=FALSE,
     guide=guide_legend(keywidth=0.5,
                        keyheight=0.5,
@@ -169,15 +191,17 @@ ggtree(phylo_data,
   geom_fruit(geom=geom_point,
     mapping=aes(x=Type, 
                 y=ind, 
-                fill=Type, 
-                color = Type, 
                 shape = Type),
     size=1,
     # starstroke=0,
     pwidth=0.1,
     grid.params=list(
       linetype=3,
-      size=0.2))
+      size=0.2))+
+  new_scale_color()
+# +
+#   scale_color_manual(values=c("#360568", "#7785ac", "#a5e6ba"),
+#     na.translate=FALSE) 
 
 
   geom_point(aes(color = sample_id))
