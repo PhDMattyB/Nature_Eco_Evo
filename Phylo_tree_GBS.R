@@ -15,6 +15,7 @@ library(ape)
 library(tidytree)
 library(ggtreeExtra)
 library(ggnewscale)
+library(ggstar)
 
 tree_data = read.tree("GBS-NJ-TREEboot_main.nwk")
 
@@ -141,17 +142,18 @@ phylo_data = as.treedata(tree_data_tidy)
 #              angle = 90,
 #              size = 2)
 
+# geom_tippoint(aes(colour = Population),
+#                             alpha=0) +
+# geom_tiplab(aes(colour = Population),
+#             align=TRUE,
+#             # linetype=3,
+#             size=2,
+#             linesize=0.2)+
+
 ggtree(phylo_data, 
        layout='circular', 
        aes(colour = Population)) + 
   xlim(-10, NA)+
-  # geom_tippoint(aes(colour = Population),
-  #                             alpha=0) +
-  # geom_tiplab(aes(colour = Population),
-  #             align=TRUE,
-  #             # linetype=3,
-  #             size=2,
-  #             linesize=0.2)+
   ggtreeExtra::geom_fruit(geom=geom_tile,
     mapping = aes(x = Ecotype, 
                 y = ind, 
@@ -162,12 +164,22 @@ ggtree(phylo_data,
     na.translate=FALSE,
     guide=guide_legend(keywidth=0.5,
                        keyheight=0.5,
-                       order=3
-    )
-  ) +
-  new_scale_fill()
-  
-  
+                       order=3)) +
+  new_scale_fill()+
+  geom_fruit(geom=geom_point,
+    mapping=aes(x=Type, 
+                y=ind, 
+                fill=Type, 
+                color = Type, 
+                shape = Type),
+    size=1,
+    # starstroke=0,
+    pwidth=0.1,
+    grid.params=list(
+      linetype=3,
+      size=0.2))
+
+
   geom_point(aes(color = sample_id))
   geom_text2(aes(label = popeco, 
                  color = popeco), 
