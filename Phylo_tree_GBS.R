@@ -18,6 +18,7 @@ tree_data = read.tree("GBS-NJ-TREEboot_main.nwk")
 
 other_data = read.tree('GBS-NJ-TREEboot_other.nwk')
 
+raxml_data = read.tree('GBS-2.raxml.support')
 
 tree_data_tidy = as_tibble(tree_data) %>% 
   separate(col = label, 
@@ -114,7 +115,10 @@ phylo_data = as.treedata(tree_data_tidy)
 
 
 ggtree(phylo_data, 
-       ladderize = T)+
+       layout="daylight")
+
+ggtree(phylo_data, 
+       ladderize = F)+
   geom_text2(aes(label = popeco,
                  subset = !is.na(as.numeric(ind))),
              vjust = 1.2,
