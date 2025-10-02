@@ -198,6 +198,13 @@ population_pal2 = c('#277da1',
                    '#adb5bd',
                    '#adb5bd')
 
+Geography_pal = c('#001219', 
+          '#94d2bd', 
+          '#0a9396',
+         "#e9d8a6",
+         "#9b2226",
+         "#bb3e03")
+
 GBS_Tree = ggtree(phylo_data, 
        layout='circular', 
        aes(colour = Population)) + 
@@ -206,7 +213,8 @@ GBS_Tree = ggtree(phylo_data,
   geom_fruit(geom=geom_tile,
     mapping = aes(x = Ecotype, 
                 y = ind, 
-                fill = Ecotype)) +
+                fill = Ecotype), 
+    color="black",) +
   scale_fill_manual(
     name="Ecotype",
     values=c("#003049", "#c1121f", "#b5e48c"),
@@ -216,17 +224,36 @@ GBS_Tree = ggtree(phylo_data,
                        order=3)) +
   new_scale_fill()+
   geom_fruit(geom=geom_point,
-    mapping=aes(x=LatLong, 
+    mapping=aes(x=Type, 
                 y=ind, 
-                shape = LatLong),
+                shape = Type),
     size=1,
     # starstroke=0,
-    pwidth=0.1)
-# +
-#   theme(legend.position = 'none')
+    pwidth=0.1)+
+  geom_fruit(geom=geom_tile,
+             mapping = aes(x = LatLong, 
+                           y = ind, 
+                           fill = LatLong), 
+             color="black",) +
+  scale_fill_manual(
+    name="Geography",
+   values = Geography_pal,
+    na.translate=F,
+    guide=guide_legend(keywidth=0.5,
+                       keyheight=0.5,
+                       order=3)) +
+  # new_scale_fill()+
+  theme(
+    legend.background=element_rect(fill=NA),
+    legend.title=element_text(size=7), 
+    legend.text=element_text(size=5.5),
+    legend.spacing.y = unit(0.02, "cm"), 
+    
+  )+
+  theme(legend.position = 'none')
 
 
-ggsave('GBS_Phylo_tree_MKB_WithLegend.tiff', 
+ggsave('GBS_Phylo_tree_MKB_NoLegend_Geography.svg', 
        plot = GBS_Tree, 
        dpi = 'retina', 
        units = 'cm', 
