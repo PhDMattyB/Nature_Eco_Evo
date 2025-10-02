@@ -412,12 +412,12 @@ Trans_amb_hyb_12 = read_csv('~/Parsons_Postdoc/SKR_Hybrid_Gene_expression/Brain_
   dplyr::select(GeneID, 
                 logFC, 
                 adj.P.Val) %>% 
-  rename(ensemble_id = GeneID) %>% 
+  dplyr::rename(ensemble_id = GeneID) %>% 
   # rename(gene_ensembl = GeneID) %>% 
   inner_join(., 
              annotation_data, 
              by = 'ensemble_id') %>% 
-  rename(GeneID = gene_name)
+  dplyr::rename(GeneID = gene_name)
 
 brain_amb_hyb_12_mapk = Trans_amb_hyb_12 %>% 
   filter(GeneID %in% mapk_pathway$gene_name)
