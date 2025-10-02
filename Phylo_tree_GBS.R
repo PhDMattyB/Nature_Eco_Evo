@@ -17,7 +17,6 @@ library(tidytree)
 tree_data = read.tree("GBS-NJ-TREEboot_main.nwk")
 
 other_data = read.tree('GBS-NJ-TREEboot_other.nwk')
-
 raxml_data = read.tree('GBS-2.raxml.support')
 
 tree_data_tidy = as_tibble(tree_data) %>% 
@@ -113,9 +112,56 @@ tree_data_tidy = as_tibble(tree_data) %>%
 
 phylo_data = as.treedata(tree_data_tidy)
 
+# ggtree(phylo_data, 
+#        layout="equal_angle")
+# 
+# ggtree(phylo_data, 
+#        layout="daylight")
 
 ggtree(phylo_data, 
-       layout="daylight")
+       layout="daylight", 
+       branch.length = 'none')+
+  # geom_tiplab(aes(color = popeco), 
+  #             as_ylab=TRUE)
+  geom_point(aes(color = Population))
+# +
+#   geom_cladelab(node=489, 
+#                 label="Marine", 
+#                 angle=0, 
+#                 fontsize=4) 
+#   geom_text2(aes(label = popeco, 
+#                  color = popeco), 
+#              angle = 90,
+#              size = 2)
+
+ggtree(phylo_data, 
+       layout='circular') + 
+  xlim(-10, NA)+
+  geom_point(aes(color = Ecotype), 
+             size=3)
+  geom_text2(aes(label = popeco, 
+                 color = popeco), 
+             angle = 90, 
+             size = 2)
+  # geom_text2(aes(label = popeco,
+  #                color = popeco,
+  #                subset = !is.na(as.numeric(ind))),
+  #            vjust = 1.2,
+  #            hjust = 1.2)+
+  scaleClade(p, 23, .2) %>% 
+  collapse(23, 'min', fill="darkgreen")  
+
+  # geom_hilight(mapping=aes(subset = node %in% c(10, 12), 
+  #                          fill = S),
+  #              type = "gradient", 
+  #              gradient.direction = 'rt',
+  #              alpha = .8)
+  # geom_label(aes(x=branch, 
+  #                label=Ecotype, 
+  #                fill = Ecotype))
+
+  # geom_treescale(offset = -1)
+  # theme_tree2()
 
 ggtree(phylo_data, 
        ladderize = F)+
