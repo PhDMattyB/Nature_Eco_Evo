@@ -171,7 +171,7 @@ population_pal2 = c('#277da1',
                    '#adb5bd',
                    '#adb5bd')
 
-ggtree(phylo_data, 
+GBS_Tree = ggtree(phylo_data, 
        layout='circular', 
        aes(colour = Population)) + 
   xlim(-10, NA)+
@@ -194,46 +194,13 @@ ggtree(phylo_data,
                 shape = Type),
     size=1,
     # starstroke=0,
-    pwidth=0.1,
-    grid.params=list(
-      linetype=3,
-      size=0.2))+
-  new_scale_color()
-# +
-#   scale_color_manual(values=c("#360568", "#7785ac", "#a5e6ba"),
-#     na.translate=FALSE) 
+    pwidth=0.1)+
+  theme(legend.position = 'none')
 
 
-  geom_point(aes(color = sample_id))
-  geom_text2(aes(label = popeco, 
-                 color = popeco), 
-             angle = 90, 
-             size = 2)
-  # geom_text2(aes(label = popeco,
-  #                color = popeco,
-  #                subset = !is.na(as.numeric(ind))),
-  #            vjust = 1.2,
-  #            hjust = 1.2)+
-  scaleClade(p, 23, .2) %>% 
-  collapse(23, 'min', fill="darkgreen")  
-
-  # geom_hilight(mapping=aes(subset = node %in% c(10, 12), 
-  #                          fill = S),
-  #              type = "gradient", 
-  #              gradient.direction = 'rt',
-  #              alpha = .8)
-  # geom_label(aes(x=branch, 
-  #                label=Ecotype, 
-  #                fill = Ecotype))
-
-  # geom_treescale(offset = -1)
-  # theme_tree2()
-
-ggtree(phylo_data, 
-       ladderize = F)+
-  geom_text2(aes(label = popeco,
-                 subset = !is.na(as.numeric(ind))),
-             vjust = 1.2,
-             hjust = 1.2)
-
-
+ggsave('GBS_Phylo_tree_MKB_sanslegend.svg', 
+       plot = GBS_Tree, 
+       dpi = 'retina', 
+       units = 'cm', 
+       width = 30, 
+       height = 30)
