@@ -108,6 +108,33 @@ tree_data_tidy = as_tibble(tree_data) %>%
            popeco == 'STNST' ~ 'Sympatric',
            popeco == 'THNGC' ~ 'Sympatric',
            popeco == 'THNGW' ~ 'Sympatric'))) %>% 
+  mutate(.data = .,
+         LatLong = as.factor(case_when(
+           popeco == 'ASHNC' ~ 'Sauderkroker',
+           popeco == 'ASHNW' ~ 'Sauderkroker',
+           popeco == 'BARN' ~ 'North-East',
+           popeco == 'CSWY' ~ 'Sauderkroker',
+           popeco == 'GTS' ~ 'North',
+           popeco == 'HERD' ~ 'Marine',
+           popeco == 'HGRNS' ~ 'North',
+           popeco == 'KLFC' ~ 'South-West',
+           popeco == 'LITA' ~ 'North-East',
+           popeco == 'LITP' ~ 'North-East',
+           popeco == 'MYVC' ~ 'North-East',
+           popeco == 'MYVW' ~ 'North-East',
+           popeco == 'NH' ~ 'North',
+           popeco == 'NYPS' ~ 'Marine',
+           popeco == 'OPNUR' ~ 'South-West',
+           popeco == 'RKLTC' ~ 'West',
+           popeco == 'RKLTW' ~ 'West',
+           popeco == 'RKR' ~ 'North',
+           popeco == 'RKRC' ~ 'North',
+           popeco == 'SKAL' ~ 'North-East',
+           popeco == 'SKRC' ~ 'Sauderkroker',
+           popeco == 'SKRW' ~ 'Sauderkroker',
+           popeco == 'STNST' ~ 'North',
+           popeco == 'THNGC' ~ 'South-West',
+           popeco == 'THNGW' ~ 'South-West'))) %>% 
   unite(sample_id, 
         c('popeco', 
           'ind'), 
@@ -189,16 +216,17 @@ GBS_Tree = ggtree(phylo_data,
                        order=3)) +
   new_scale_fill()+
   geom_fruit(geom=geom_point,
-    mapping=aes(x=Type, 
+    mapping=aes(x=LatLong, 
                 y=ind, 
-                shape = Type),
+                shape = LatLong),
     size=1,
     # starstroke=0,
-    pwidth=0.1)+
-  theme(legend.position = 'none')
+    pwidth=0.1)
+# +
+#   theme(legend.position = 'none')
 
 
-ggsave('GBS_Phylo_tree_MKB_sanslegend.svg', 
+ggsave('GBS_Phylo_tree_MKB_WithLegend.tiff', 
        plot = GBS_Tree, 
        dpi = 'retina', 
        units = 'cm', 
