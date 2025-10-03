@@ -336,8 +336,21 @@ ggsave(filename = paste0(basedir, "Stats/PCA/pca2D_LDpruned_plot.pdf"), plot = p
 
 # admixture plot ----------------------------------------------------------
 
-col_vector<-c("black","#d3436e","snow","seagreen","#f8765c","darkgoldenrod4",
-              "gray","#fcfdbf","yellowgreen","#3683d3","#5f187f","navy")
+admix_pal = c('#3a5a40', ##lake 10
+              '#277da1',#K1 ASHN
+              '#9d4edd', ##CSWY
+              '#D1495B', ## MYV
+              '#344e41',
+              '#b5e48c', ##Marine (HERD)
+              
+              '#dad7cd', ## lake 4
+              '#EDAE49', #GTS
+              
+              '#588157', ##lake 7
+              '#a3b18a', ## SKR
+              '#a2d2ff'# BARN group
+) ##OTHER?
+              
 
 admix_meta_data = tree_data_tidy %>% 
   select(sample_id:Region) %>% 
@@ -376,11 +389,6 @@ admix_data = populations %>%
   dplyr::select(popeco, 
                 ind, 
                 K1:K11)
-test = admix_data %>% 
-  dplyr::select(K1:K11) %>% 
-  as.matrix() %>% 
-  t()
-
 
 admix_data_reshaped = reshape2::melt(admix_data, 
      id.vars = c('popeco', 
@@ -396,18 +404,20 @@ admix_data_reshaped = reshape2::melt(admix_data,
          THECOMBO = popeco_ind)
 
 
-ggplot(data = admix_data_reshaped, 
-       aes(x = reorder(popeco_ind, popeco),
+admixture_plot = ggplot(data = admix_data_reshaped, 
+       aes(x = reorder(THECOMBO, THEPOPS),
            y = value, 
            fill = variable, 
-           group = popeco))+
+           group = THEPOPS))+
   geom_bar(stat = "identity", 
            width = 1)+
-  scale_fill_manual(values = col_vector)+
+  scale_fill_manual(values = admix_pal)+
   # scale_fill_manual(values = magma(n = 4))+
   labs(x = 'Individuals', 
        y = 'Ancestry proportion')+
-  theme(axis.text.y = element_text(color = 'black'),
+  theme(axis.text.y = element_text(color = 'black', 
+                                   size = 12),
+        axis.title.y = element_text(size = 14),
         axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         ## can add xaxis labels if needed
@@ -416,11 +426,17 @@ ggplot(data = admix_data_reshaped,
         #                            vjust = -0.09,
         #                            size = 6,
         #                            color = 'black'),
-        # legend.position = 'none'
+        legend.position = 'none'
         )+
   scale_x_discrete(guide = guide_axis(n.dodge = 5))+
   scale_y_continuous(expand = c(0,0))
 
+ggsave('GBS_admixture_plot.tiff', 
+       plot = admixture_plot, 
+       dpi = 'retina', 
+       units = 'cm', 
+       width = 30, 
+       height = 10)
 
 # combine tree with admix plot --------------------------------------------
 
