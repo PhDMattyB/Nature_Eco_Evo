@@ -351,7 +351,8 @@ admix_data = read_table2('allindsK11run4.qopt',
          K9 = 9, 
          K10 = 10, 
          K11 = 11, 
-         other = 12)
+         other = 12) %>% 
+  dplyr::select(1:11)
 
 populations<-c(rep("ASNHC",16),rep("ASNHW",16),rep("BARN",15),rep("CSWY",15),rep("GTS",14),rep("HERD",15),rep("HGRNS",13),rep("KLFC",12),rep("LITA",15),rep("LITP",15),rep("MYVC",16),rep("MYVW",16),rep("NH",14),rep("NYPS",15),rep("OPNUR",12),rep("RKLTC",15),rep("RKLTW",15),rep("RKR",13),rep("RKRC",11),rep("SKAL",15),rep("SKRC",14),rep("SKRW",16),rep("STNST",15),rep("THNGC",15),rep("THNGW",14))
 
@@ -365,6 +366,17 @@ admix_data = populations %>%
 admix_data_reshaped = reshape2::melt(admix_data, 
      id.vars = c('Population')) %>% 
   as_tibble()
+
+
+ggplot(data = admix_data_reshaped, 
+       aes(x = Population,
+           y = value, 
+           fill = variable, 
+           group = Population))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = col_vector)+
+  scale_x_discrete(guide = guide_axis(n.dodge = 5))+
+  scale_y_continuous(expand = c(0,0))
 
 
 barplot(admix, col=col_vector, space=0, border=NA, ylab="Admixture", xlab="Populations", main="Icelandic Sticklebacks (K=11)")
