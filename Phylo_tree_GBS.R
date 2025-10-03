@@ -167,6 +167,11 @@ tree_data_tidy = as_tibble(tree_data) %>%
         c('popeco', 
           'ind'), 
         sep = '_', 
+        remove = F) %>% 
+  unite(popeco_ind, 
+        c('popeco', 
+          'ind'), 
+        sep = '_', 
         remove = F)
 
 # tree_data_tidy %>% 
@@ -334,11 +339,14 @@ ggsave(filename = paste0(basedir, "Stats/PCA/pca2D_LDpruned_plot.pdf"), plot = p
 col_vector<-c("black","#d3436e","snow","seagreen","#f8765c","darkgoldenrod4",
               "gray","#fcfdbf","yellowgreen","#3683d3","#5f187f","navy")
 
-#The best K=11 run is the run 4
-admix<-t(as.matrix(read.table("allindsK11run4.qopt")))
-head(admix[, 1:10])
+admix_meta_data = tree_data_tidy %>% 
+  select(sample_id:Region) %>% 
+  na.omit() %>% 
+  arrange(popeco)
 
-admix_data = read_table2('allindsK11run4.qopt', 
+
+#The best K=11 run is the run 4
+admix_data_init = read_table2('allindsK11run4.qopt', 
             col_names = F) %>% 
   rename(K1 = 1, 
          K2 = 2, 
@@ -358,38 +366,80 @@ populations<-c(rep("ASNHC",16),rep("ASNHW",16),rep("BARN",15),rep("CSWY",15),rep
 
 admix_data = populations %>% 
   as_tibble() %>% 
-  rename(Population = value) %>% 
+  rename(popeco = value) %>% 
+  bind_cols(.,
+            admix_meta_data) %>% 
+  dplyr::select(-popeco...1) %>% 
+  rename(popeco = popeco...3) %>% 
   bind_cols(., 
-            admix_data)
+            admix_data_init) %>% 
+  dplyr::select(popeco, 
+                ind, 
+                K1:K11)
+test = admix_data %>% 
+  dplyr::select(K1:K11) %>% 
+  as.matrix() %>% 
+  t()
 
 
 admix_data_reshaped = reshape2::melt(admix_data, 
-     id.vars = c('Population')) %>% 
-  as_tibble()
+     id.vars = c('popeco', 
+                 'ind')) %>% 
+  as_tibble() %>% 
+  unite(popeco_ind, 
+        c('popeco', 
+          'ind'), 
+        sep = "_", 
+        remove =F) %>% 
+  rename(THEPOPS = popeco, 
+         THEINDS = ind, 
+         THECOMBO = popeco_ind)
 
 
 ggplot(data = admix_data_reshaped, 
-       aes(x = Population,
+       aes(x = reorder(popeco_ind, popeco),
            y = value, 
            fill = variable, 
-           group = Population))+
-  geom_bar(stat = "identity")+
+           group = popeco))+
+  geom_bar(stat = "identity", 
+           width = 1)+
   scale_fill_manual(values = col_vector)+
+  # scale_fill_manual(values = magma(n = 4))+
+  labs(x = 'Individuals', 
+       y = 'Ancestry proportion')+
+  theme(axis.text.y = element_text(color = 'black'),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        ## can add xaxis labels if needed
+        # axis.text.x = element_text(angle = 90,
+        #                            hjust = 1,
+        #                            vjust = -0.09,
+        #                            size = 6,
+        #                            color = 'black'),
+        # legend.position = 'none'
+        )+
   scale_x_discrete(guide = guide_axis(n.dodge = 5))+
   scale_y_continuous(expand = c(0,0))
 
 
-barplot(admix, col=col_vector, space=0, border=NA, ylab="Admixture", xlab="Populations", main="Icelandic Sticklebacks (K=11)")
+# combine tree with admix plot --------------------------------------------
 
-abline(v=c(16,32,47,62,76,91,104,116,131,146,162,178,192,207,219,234,249,262,273,288,302,318,333,348),lty=5,lwd=2, col="white")
-#text(c(1,17,33,48,63,77,92,105,117,132,147,163,179,193,208,220,235,250,263,274,289,303,319,334,349),-0.05,unique(populations),xpd=T)
-
-#relocate the position of the groups in the plot to follow the same order as placed in the Map
-geolocate<-admix[,c(1:16,17:32,33:47,179:192,319:333,250:262,263:273,147:162,163:178,117:131,132:146,274:288,
-                    334:348,349:362,289:302,303:318,48:62,92:104,63:76,220:234,235:249,208:219,105:116,77:91,193:207)]
-
-barplot(geolocate, col=col_vector, space=0, border=NA, ylab="Admixture", xlab="Populations", main="Icelandic Sticklebacks (K=11)")
-
-abline(v=c(16,32,47,61,76,89,100,116,132,147,162,177,192,206,220,236,251,264,278,293,308,320,332,347),lty=5,lwd=2, col="white")
-
-#text(c(1,17,33,48,62,78,91,105,120,134,147,158,173,189,205,220,235,250,265,279,294,309,321,333,348),-0.05,unique(populations),xpd=T)
+GBS_Tree+
+  # coord_flip()+
+  new_scale_fill()+
+  geom_fruit(
+    data = admix_data_reshaped,
+    geom=geom_bar,
+             mapping = aes(x = value,
+               # x = reorder(THECOMBO, THEPOPS),
+                           y = THEINDS, 
+                           fill = variable), 
+    stat = "identity",
+    orientation = "y") +
+  scale_fill_manual(
+    name="Admixture",
+    values=col_vector,
+    na.translate=FALSE,
+    guide=guide_legend(keywidth=0.5,
+                       keyheight=0.5,
+                       order=3))
