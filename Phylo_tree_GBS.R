@@ -135,6 +135,33 @@ tree_data_tidy = as_tibble(tree_data) %>%
            popeco == 'STNST' ~ 'North',
            popeco == 'THNGC' ~ 'South-West',
            popeco == 'THNGW' ~ 'South-West'))) %>% 
+  mutate(.data = .,
+         Region = as.factor(case_when(
+           popeco == 'ASHNC' ~ 'Lake 1',
+           popeco == 'ASHNW' ~ 'Lake 1',
+           popeco == 'BARN' ~ 'Lake 3',
+           popeco == 'CSWY' ~ 'Lake 8',
+           popeco == 'GTS' ~ 'Lake 9',
+           popeco == 'HERD' ~ 'Marine',
+           popeco == 'HGRNS' ~ 'Lake 10',
+           popeco == 'KLFC' ~ 'Lake 12',
+           popeco == 'LITA' ~ 'Lake 4',
+           popeco == 'LITP' ~ 'Lake 4',
+           popeco == 'MYVC' ~ 'Lake 2',
+           popeco == 'MYVW' ~ 'Lake 2',
+           popeco == 'NH' ~ 'Lake 3',
+           popeco == 'NYPS' ~ 'Marine',
+           popeco == 'OPNUR' ~ 'Lake 11',
+           popeco == 'RKLTC' ~ 'Lake 7',
+           popeco == 'RKLTW' ~ 'Lake 7',
+           popeco == 'RKR' ~ 'Lake 3',
+           popeco == 'RKRC' ~ 'Lake 3',
+           popeco == 'SKAL' ~ 'Lake 4',
+           popeco == 'SKRC' ~ 'Lake 6',
+           popeco == 'SKRW' ~ 'Lake 6',
+           popeco == 'STNST' ~ 'Lake 3',
+           popeco == 'THNGC' ~ 'Lake 5',
+           popeco == 'THNGW' ~ 'Lake 5'))) %>% 
   unite(sample_id, 
         c('popeco', 
           'ind'), 
@@ -205,6 +232,21 @@ Geography_pal = c('#001219',
          "#9b2226",
          "#bb3e03")
 
+region_pal = c('#277da1',
+               '#3a5a40',
+               '#344e41',
+               '#606c38',
+               '#D1495B',
+               '#a2d2ff',
+               '#dad7cd', 
+               '#a3b18a',
+               '#7ae7c7',
+               '#588157',
+               # '#ffafcc',
+               '#9d4edd',
+               '#EDAE49',
+               '#b5e48c')
+
 GBS_Tree = ggtree(phylo_data, 
        layout='circular', 
        aes(colour = Population)) + 
@@ -223,25 +265,25 @@ GBS_Tree = ggtree(phylo_data,
                        keyheight=0.5,
                        order=3)) +
   new_scale_fill()+
-  geom_fruit(geom=geom_point,
-    mapping=aes(x=Type, 
-                y=ind, 
-                shape = Type),
-    size=1,
-    # starstroke=0,
-    pwidth=0.1)+
   geom_fruit(geom=geom_tile,
-             mapping = aes(x = LatLong, 
+             mapping = aes(x = Region, 
                            y = ind, 
-                           fill = LatLong), 
+                           fill = Region), 
              color="black",) +
   scale_fill_manual(
     name="Geography",
-   values = Geography_pal,
+   values = region_pal,
     na.translate=F,
     guide=guide_legend(keywidth=0.5,
                        keyheight=0.5,
                        order=3)) +
+  # geom_fruit(geom=geom_point,
+  #            mapping=aes(x=Type,
+  #                        y=ind,
+  #                        shape = Type),
+  #            size=1,
+  #            # starstroke=0,
+  #            pwidth=0.1)+
   # new_scale_fill()+
   theme(
     legend.background=element_rect(fill=NA),
@@ -252,10 +294,10 @@ GBS_Tree = ggtree(phylo_data,
   )+
   theme(legend.position = 'none')
 
-
-ggsave('GBS_Phylo_tree_MKB_NoLegend_Geography.svg', 
+GBS_Tree
+ggsave('GBS_Phylo_tree_MKB_NoLegend_LakeRegion.tiff', 
        plot = GBS_Tree, 
        dpi = 'retina', 
        units = 'cm', 
-       width = 30, 
-       height = 30)
+       width = 40, 
+       height = 40)
