@@ -16,6 +16,7 @@ library(tidytree)
 library(ggtreeExtra)
 library(ggnewscale)
 library(ggstar)
+library(reshape2)
 
 tree_data = read.tree("GBS-NJ-TREEboot_main.nwk")
 
@@ -299,5 +300,84 @@ ggsave('GBS_Phylo_tree_MKB_NoLegend_LakeRegion.tiff',
        plot = GBS_Tree, 
        dpi = 'retina', 
        units = 'cm', 
-       width = 40, 
-       height = 40)
+       width = 50, 
+       height = 50)
+
+
+
+# PCA axes and adding to phylo tree ---------------------------------------
+
+PCA_cov = read_table2('GBSfinal_unlinked-PCANGSD.cov',
+         col_names = F) 
+
+
+#We will also add a column with population assignments
+pop <- c(rep("ASNHC",16),rep("ASNHW",16),rep("BARN",15),rep("CSWY",15),rep("GTS",14),rep("HERD",15),rep("HGRNS",13),rep("KLFC",12),rep("LITA",15),rep("LITP",15),rep("MYVC",16),rep("MYVW",16),rep("NH",14),rep("NYPS",15),rep("OPNUR",12),rep("RKLTC",15),rep("RKLTW",15),rep("RKR",13),rep("RKRC",11),rep("SKAL",15),rep("SKRC",14),rep("SKRW",16),rep("STNST",15),rep("THNGC",15),rep("THNGW",14))
+
+#perform the pca using the eigen function.
+e <- eigen(PCA_cov)  
+
+#extract eigenvectors
+eigenvectors = e$vectors 
+
+#combine with the population assignments and plot
+pca.vectors = as_tibble(cbind(pop, data.frame(eigenvectors))) 
+pca = ggplot(data = pca.vectors, aes(x=X1, y=X2, colour = pop)) + geom_point()
+
+#save
+ggsave(filename = paste0(basedir, "Stats/PCA/pca2D_LDpruned_plot.pdf"), plot = pca) 
+
+
+
+# admixture plot ----------------------------------------------------------
+
+col_vector<-c("black","#d3436e","snow","seagreen","#f8765c","darkgoldenrod4",
+              "gray","#fcfdbf","yellowgreen","#3683d3","#5f187f","navy")
+
+#The best K=11 run is the run 4
+admix<-t(as.matrix(read.table("allindsK11run4.qopt")))
+head(admix[, 1:10])
+
+admix_data = read_table2('allindsK11run4.qopt', 
+            col_names = F) %>% 
+  rename(K1 = 1, 
+         K2 = 2, 
+         K3 = 3, 
+         K4 = 4, 
+         K5 = 5, 
+         K6 = 6, 
+         K7 = 7, 
+         K8 = 8, 
+         K9 = 9, 
+         K10 = 10, 
+         K11 = 11, 
+         other = 12)
+
+populations<-c(rep("ASNHC",16),rep("ASNHW",16),rep("BARN",15),rep("CSWY",15),rep("GTS",14),rep("HERD",15),rep("HGRNS",13),rep("KLFC",12),rep("LITA",15),rep("LITP",15),rep("MYVC",16),rep("MYVW",16),rep("NH",14),rep("NYPS",15),rep("OPNUR",12),rep("RKLTC",15),rep("RKLTW",15),rep("RKR",13),rep("RKRC",11),rep("SKAL",15),rep("SKRC",14),rep("SKRW",16),rep("STNST",15),rep("THNGC",15),rep("THNGW",14))
+
+admix_data = populations %>% 
+  as_tibble() %>% 
+  rename(Population = value) %>% 
+  bind_cols(., 
+            admix_data)
+
+
+admix_data_reshaped = reshape2::melt(admix_data, 
+     id.vars = c('Population')) %>% 
+  as_tibble()
+
+
+barplot(admix, col=col_vector, space=0, border=NA, ylab="Admixture", xlab="Populations", main="Icelandic Sticklebacks (K=11)")
+
+abline(v=c(16,32,47,62,76,91,104,116,131,146,162,178,192,207,219,234,249,262,273,288,302,318,333,348),lty=5,lwd=2, col="white")
+#text(c(1,17,33,48,63,77,92,105,117,132,147,163,179,193,208,220,235,250,263,274,289,303,319,334,349),-0.05,unique(populations),xpd=T)
+
+#relocate the position of the groups in the plot to follow the same order as placed in the Map
+geolocate<-admix[,c(1:16,17:32,33:47,179:192,319:333,250:262,263:273,147:162,163:178,117:131,132:146,274:288,
+                    334:348,349:362,289:302,303:318,48:62,92:104,63:76,220:234,235:249,208:219,105:116,77:91,193:207)]
+
+barplot(geolocate, col=col_vector, space=0, border=NA, ylab="Admixture", xlab="Populations", main="Icelandic Sticklebacks (K=11)")
+
+abline(v=c(16,32,47,61,76,89,100,116,132,147,162,177,192,206,220,236,251,264,278,293,308,320,332,347),lty=5,lwd=2, col="white")
+
+#text(c(1,17,33,48,62,78,91,105,120,134,147,158,173,189,205,220,235,250,265,279,294,309,321,333,348),-0.05,unique(populations),xpd=T)
