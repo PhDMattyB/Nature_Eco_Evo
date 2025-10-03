@@ -431,7 +431,7 @@ admixture_plot = ggplot(data = admix_data_reshaped,
   scale_x_discrete(guide = guide_axis(n.dodge = 5))+
   scale_y_continuous(expand = c(0,0))
 
-ggsave('GBS_admixture_plot.tiff', 
+ggsave('GBS_admixture_plot.svg', 
        plot = admixture_plot, 
        dpi = 'retina', 
        units = 'cm', 
