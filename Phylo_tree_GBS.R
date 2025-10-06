@@ -383,12 +383,17 @@ admix_data = populations %>%
   bind_cols(.,
             admix_meta_data) %>% 
   dplyr::select(-popeco...1) %>% 
-  rename(popeco = popeco...3) %>% 
+  rename(popeco = popeco...4) %>% 
   bind_cols(., 
             admix_data_init) %>% 
   dplyr::select(popeco, 
                 ind, 
-                K1:K11)
+                K1:K11) %>% 
+  unite(popeco_ind, 
+        c('popeco', 
+          'ind'), 
+        sep = "_", 
+        remove =F)
 
 admix_data_reshaped = reshape2::melt(admix_data, 
      id.vars = c('popeco', 
@@ -440,15 +445,50 @@ ggsave('GBS_admixture_plot.svg',
 
 # combine tree with admix plot --------------------------------------------
 
+phylo_data = as.treedata(tree_data_tidy)
+
+tibs_df_phylo = as_tibble(phylo_data) %>% 
+  # rename(popeco_ind = sample_id)
+  full_join(.,
+            admix_data, 
+            by = c('popeco_ind', 
+                   'popeco', 
+                   'ind')) %>% 
+  dplyr::select(popeco_ind, 
+                # popeco, 
+                # ind, 
+                K1:K11)
+
+admix_plot_data = reshape2::melt(tibs_df_phylo, 
+               id.vars = c('popeco_ind')) %>% 
+  as_tibble() %>% 
+  separate(col = popeco_ind, 
+           c('popeco', 
+             'ind'), 
+           sep = '_', 
+           remove = F)
+# %>% 
+  # unite(popeco_ind, 
+  #       c('popeco', 
+  #         'ind'), 
+  #       sep = "_", 
+  #       remove =F) %>% 
+  # rename(THEPOPS = popeco, 
+  #        THEINDS = ind, 
+  #        THECOMBO = popeco_ind)
+  # 
+
+
+
 GBS_Tree+
   # coord_flip()+
   new_scale_fill()+
   geom_fruit(
-    data = admix_data_reshaped,
+    data = admix_plot_data,
     geom=geom_bar,
              mapping = aes(x = value,
                # x = reorder(THECOMBO, THEPOPS),
-                           y = THEINDS, 
+                           y = ind, 
                            fill = variable), 
     stat = "identity",
     orientation = "y") +
