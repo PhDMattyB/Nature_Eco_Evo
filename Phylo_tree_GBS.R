@@ -574,12 +574,22 @@ WGS_pop_pal1 = c('#277da1',
                     '#7ae7c7', 
                     'black')
 
-ggtree(WGS_tree, 
+WGS_pop_tree = ggtree(WGS_tree, 
        layout="daylight", 
-       branch.length = 'none')+
+       branch.length = 'none', 
+       size = 1)+
   geom_tippoint(size=3, 
                 aes(colour = Population2))+
-  scale_color_manual(values = WGS_pop_pal1)
+  scale_color_manual(values = WGS_pop_pal1)+
+  theme(legend.position = 'none')
+
+ggsave('WGS_Phylo_tree_MKB_NoLegend.svg', 
+       plot = WGS_pop_tree, 
+       dpi = 'retina', 
+       units = 'cm', 
+       width = 10, 
+       height = 20)
+
 
 
 WGS_pop_pal2 = c('#a2d2ff', 
