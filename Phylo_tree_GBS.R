@@ -499,3 +499,124 @@ GBS_Tree+
     guide=guide_legend(keywidth=0.5,
                        keyheight=0.5,
                        order=3))
+
+
+
+# Phylo tree WGS data -----------------------------------------------------
+
+library(vcfR)
+library(phytools)
+library(fastreeR)
+library(dartRverse)
+
+vcf = read.vcfR('~/Parsons_Postdoc/Stickleback_Genomic/vcf_filter/stickleback_filtered_vcf.vcf')
+vcf_names = colnames(vcf@gt) %>% 
+  as_tibble() %>% 
+  slice(-1)
+
+
+metadata = read_csv('~/Parsons_Postdoc/Stickleback_Genomic/vcf_filter/stickleback_identifiers.csv') %>% 
+  bind_cols(., 
+            vcf_names) %>% 
+  rename(vcf_names = value)
+# %>%
+#   mutate(individual_id2 = individual_id) %>% 
+#   unite(col = individual_id, 
+#         c('individual_id', 
+#           'individual_id2'), 
+#         sep = '_')
+genlight_data <- vcfR2genlight(vcf)
+
+# dist_matrix = vcf2dist(inputFile = '~/Parsons_Postdoc/Stickleback_Genomic/vcf_filter/stickleback_filtered_vcf.vcf',
+#          outputFile = 'stickleback_dist_matrix.txt')
+
+# library(poppr)
+# 
+# nei.dist(genlight_data, warning = TRUE)
+
+WGS_dist_mat = dist(genlight_data)
+
+WGS_tree = upgma(WGS_dist_mat)
+
+WGS_tree_data = as_tibble(WGS_tree) %>%
+  dplyr::rename(vcf_names = label) %>% 
+  full_join(., 
+             metadata, 
+             by = 'vcf_names') %>% 
+  mutate(.data = .,
+         Ecotype = as.factor(case_when(
+           population == 'ASHNC' ~ 'Ambient',
+           population == 'ASHNW' ~ 'Geothermal',
+           population == 'CSWY' ~ 'Ambient',
+           population == 'GTS' ~ 'Geothermal',
+           population == 'MYVC' ~ 'Ambient',
+           population == 'MYVW' ~ 'Geothermal',
+           population == 'SKRC' ~ 'Ambient',
+           population == 'SKRW' ~ 'Geothermal'))) %>% 
+  mutate(.data = .,
+         Population2 = as.factor(case_when(
+           population == 'ASHNC' ~ 'ASHN',
+           population == 'ASHNW' ~ 'ASHN',
+           population == 'CSWY' ~ 'GAR',
+           population == 'GTS' ~ 'GTS',
+           population == 'MYVC' ~ 'MYV',
+           population == 'MYVW' ~ 'MYV',
+           population == 'SKRC' ~ 'SKR',
+           population == 'SKRW' ~ 'SKR')))
+
+WGS_tree = as.treedata(WGS_tree_data)
+
+
+WGS_pop_pal1 = c('#277da1',
+                    '#9d4edd',
+                    '#EDAE49',
+                    '#D1495B',
+                    '#7ae7c7', 
+                    'black')
+
+ggtree(WGS_tree, 
+       layout="daylight", 
+       branch.length = 'none')+
+  geom_tippoint(size=3, 
+                aes(colour = Population2))+
+  scale_color_manual(values = WGS_pop_pal1)
+
+
+WGS_pop_pal2 = c('#a2d2ff', 
+                 '#ffafcc', 
+                 '#9d4edd', 
+                 '#EDAE49', 
+                 '#003049', 
+                 '#780000', 
+                 '#2a9d8f', 
+                 '#e76f51', 
+                 'black')
+
+
+
+ggtree(WGS_tree, 
+       layout="daylight", 
+              branch.length = 'none', 
+       aes(colour = population))+
+  geom_tippoint(size=3, 
+                aes(colour = population))+
+  scale_color_manual(values = WGS_pop_pal2)
+
+  #   new_scale_fill()+
+  # geom_fruit(geom = geom_tile,
+  #            mapping = aes(x = Ecotype, 
+  #                          y = vcf_names, 
+  #                          fill = Ecotype), 
+  #            color="black") +
+  # scale_fill_manual(
+  #   name="Ecotype",
+  #   values=c("#003049", "#c1121f"),
+  #   na.translate=FALSE,
+  #   guide=guide_legend(keywidth=0.5,
+  #                      keyheight=0.5,
+  #                      order=3)) 
+
+ggtree(WGS_tree, 
+       layout='circular', 
+       aes(colour = population)) + 
+  xlim(-10, NA)
