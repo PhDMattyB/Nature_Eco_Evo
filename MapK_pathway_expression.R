@@ -239,8 +239,8 @@ write.csv(resorderd, file = "DESeq_Infection_Full_StringParam_new.csv") ##2369 a
 
 # norm count graph --------------------------------------------------------
 
-liver_mapk_counts_norm = read_tsv('Liver_mapk_Normalized_counts.txt')
-liver_mapk_genes = read_table2('Liver_mapk_count_data.txt') %>% 
+liver_mapk_counts_norm = read_tsv('~/Parsons_Postdoc/Stickleback_Genomic/Stickleback_Annotation_features/Liver_mapk_Normalized_counts.txt')
+liver_mapk_genes = read_table2('~/Parsons_Postdoc/Stickleback_Genomic/Stickleback_Annotation_features/Liver_mapk_count_data.txt') %>% 
   select(gene_name)
 
 liver_mapk_norm_counts_log = bind_cols(liver_mapk_genes, 
@@ -292,7 +292,9 @@ liver_mapk_log_norm_counts_clean = liver_mapk_norm_counts_log %>%
 liver_mapk_means = liver_mapk_log_norm_counts_clean %>% 
   group_by(gene_name,
            temp, 
-           ecotype) %>% 
+           # ecotype
+           ecopop
+           ) %>% 
   summarize(mean_expression = mean(log_count))
   
 liver_mapk_means$gene_name = toupper(liver_mapk_means$gene_name)
@@ -334,6 +336,43 @@ expression_cols = c('#003049',
         width = 40, 
         height = 10)
  
+ expression_cols2 = c('#003049', 
+                     '#c1121f', 
+                     '#8ecae6', 
+                     '#ffb703', 
+                     '#219ebc', 
+                     '#fb8500')
+ 
+ 
+ liver_mapk_expression_plot2 = ggplot()+
+   # geom_point(data = liver_mapk_log_norm_counts_clean, 
+   # aes(x = temp, 
+   #               y = log_count, 
+   #               col = ecotype))+
+   geom_point(data = liver_mapk_means,
+              aes(x = temp, 
+                  y = mean_expression, 
+                  group = ecopop, 
+                  col = ecopop), 
+              size = 2) + 
+   geom_line(data = liver_mapk_means, 
+             aes(x = temp, 
+                 y = mean_expression, 
+                 group = ecopop))+
+   scale_color_manual(values = expression_cols2)+
+   labs(y = 'log(normalized counts)')+
+   facet_grid(~gene_name)+
+   theme(
+     # legend.position = 'none',
+         axis.title.x = element_blank(), 
+         axis.title.y = element_text(size = 14), 
+         axis.text = element_text(size = 12), 
+         panel.grid.major.y = element_blank(),
+         panel.grid.minor.y = element_blank(),
+         # panel.grid.major = element_blank(), 
+         strip.background = element_rect(fill = 'white'))
+ 
+liver_mapk_expression_plot2 
  
 # annotation data ---------------------------------------------------------
 
@@ -694,3 +733,44 @@ GTS_CSWY_mapk = inner_join(GTS_CSWY_outliers2,
 WC_mapk = inner_join(WC_outliers, 
                      mapk_pathway, 
                      by = 'gene_name')
+
+
+
+# FST MAPK genes ----------------------------------------------------------
+annotation_data
+
+liver_div_plast_mapk
+ASHN_Fst = read_csv('ASHN_Fst_clean.csv') %>% 
+  separate(CHR, 
+           c('chr', 
+             'chr_num'), 
+           sep = '_') %>% 
+  unite(CHR, 
+        c('chr', 
+          'chr_num'), 
+        sep = '') %>% 
+  rename(chromosome = CHR, 
+         position = POS) %>% 
+  filter(chromosome == 'chrIV') %>% 
+  View()
+  inner_join(., 
+             liver_div_plast_mapk, 
+             by = c('chromosome', 
+                    'position'))
+
+
+  wc_fst = read_csv('WC_Fst_clean.csv')%>% 
+    separate(CHR, 
+             c('chr', 
+               'chr_num'), 
+             sep = '_') %>% 
+    unite(CHR, 
+          c('chr', 
+            'chr_num'), 
+          sep = '') %>% 
+    rename(chromosome = CHR, 
+           position = POS) %>%
+    inner_join(., 
+               liver_div_plast_mapk, 
+               by = c('chromosome', 
+                      'position'))
