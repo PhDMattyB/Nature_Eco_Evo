@@ -17,6 +17,7 @@ brain_f1_exp = read_csv('BRAIN_BH_FDR_GLMER_ecotemp_pval0.05.csv')
 
 liver_f1_exp = read_csv('LIVER_BH_FDR_GLMER_ecotemp_pval0.05.csv')
 
+liver_eco_temp_pop_inter = read_csv("")
 # brain_f1_exp %>% 
 #   filter(str_detect(gene_name, 'map'))
 # 
