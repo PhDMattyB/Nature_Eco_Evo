@@ -9,6 +9,7 @@
 setwd('~/Parsons_Postdoc/Stickleback_Genomic/Stickleback_Annotation_features/')
 
 library(tidyverse)
+library(ggvenn)
 library(ggVennDiagram)
 
 ## (Sharedloci ∕ totallociinpopulation 1 + Sharedloci ∕ totallociinpopulation 2) ∗ 0.5
@@ -16,23 +17,51 @@ library(ggVennDiagram)
 # Fst outlier loci --------------------------------------------------------
 
 ASHN_out_loc = read_csv('ASHN_TOP_DAWG_FST_outlier.csv') %>% 
-  dplyr::select(SNP)
+  dplyr::select(SNP) %>% 
+  as.list()
 MYV_out_loc = read_csv('MYV_TOP_DAWG_Fst_clean.csv') %>% 
   filter(value == 'Outlier') %>% 
-  dplyr::select(SNP)
+  dplyr::select(SNP) %>% 
+  as.list()
 SKR_out_loc = read_csv('SKR_TOP_DAWG_Fst_clean.csv') %>% 
   filter(value == 'Outlier') %>% 
-  dplyr::select(SNP)
+  dplyr::select(SNP) %>% 
+  as.list()
 GTS_GAR_out_loc = read_csv('GTS_CSWY_TOP_DAWG_Fst_clean.csv') %>% 
   filter(value == 'Outlier') %>% 
-  dplyr::select(SNP)
+  dplyr::select(SNP) %>% 
+  as.list()
 
-list_out_loc = list(ASHN_out_loc, 
-     MYV_out_loc, 
-     SKR_out_loc, 
-     GTS_GAR_out_loc)
+list_out_loc = list(ASHN_out_loc$SNP, 
+     MYV_out_loc$SNP, 
+     SKR_out_loc$SNP, 
+     GTS_GAR_out_loc$SNP)
 
-ggVennDiagram(list_out_loc)
+location_cols = c('#00798c',
+                  '#003d5b',
+                  '#edae49',
+                  '#d1495b',
+                  '#30638e')
+
+out_loc_venn = ggVennDiagram(list_out_loc, 
+              label_alpha = 0,
+              label = 'count',
+              category.names = c("ASHN - Young",
+                                 "MYV - Old",
+                                 "SKR - Young", 
+                                 'GTS/GAR - Old'),
+              label_size = 4, 
+              set_color = c("#00798c",
+                            "#d1495b",
+                            "#30638e",
+                            "#edae49"))+
+  scale_fill_gradient(low = "#ffffff", high = "#ffffff")+ 
+  scale_x_continuous(expand = expansion(mult = .2))+
+  theme_void()+
+  theme(
+  text = element_text(size = 4), 
+  legend.position = 'none')
+
 
 # parallelism per loci ----------------------------------------------------
 
@@ -59,42 +88,76 @@ ggVennDiagram(list_out_loc)
 # gene parallelims --------------------------------------------------------
 
 
-ASHN_genes = read_tsv('ASHN_FST_0.5%_outlier_gene_names_only_NEW.tsv', 
-                      col_names = F) %>% 
-  distinct(X1) %>% 
-  separate(X1, 
-           c('gene_name', 
-             'trash'),
-           sep = '-') %>% 
-  dplyr::select(-trash) %>% 
+ASHN_genes = read_csv('ASHN_FST_0.5%_outlier_genes_NEW.csv', 
+                      col_names = T) %>% 
+  filter(feature == 'gene') %>% 
+  filter(., !grepl('ENSG', gene_name)) %>% 
+  arrange(gene_name) %>% 
   distinct(gene_name)
-MYV_genes = read_tsv("MYV_FST_0.5%_outlier_gene_names_only_NEW.tsv", 
-                     col_names = F)%>% 
-  distinct(X1) %>% 
-  separate(X1, 
-           c('gene_name', 
-             'trash'),
-           sep = '-') %>% 
-  dplyr::select(-trash) %>% 
+# %>% 
+#   distinct(X1) %>% 
+#   separate(X1, 
+#            c('gene_name', 
+#              'trash'),
+#            sep = '-') %>% 
+#   dplyr::select(-trash) %>% 
+#   distinct(gene_name)
+MYV_genes = read_csv("MYV_FST_0.5%_outlier_genes_NEW.csv", 
+                     col_names = T)%>% 
+  filter(feature == 'gene') %>% 
+  filter(., !grepl('ENSG', gene_name)) %>% 
+  arrange(gene_name) %>% 
   distinct(gene_name)
-SKR_genes = read_tsv("SKR_FST_0.5%_outlier_gene_names_only_NEW.tsv", 
-                     col_names = F)%>% 
-  distinct(X1) %>% 
-  separate(X1, 
-           c('gene_name', 
-             'trash'),
-           sep = '-') %>% 
-  dplyr::select(-trash) %>% 
+  # distinct(X1) %>% 
+  # separate(X1, 
+  #          c('gene_name', 
+  #            'trash'),
+  #          sep = '-') %>% 
+  # dplyr::select(-trash) %>% 
+  # distinct(gene_name)
+SKR_genes = read_csv("SKR_FST_0.5%_outlier_genes_NEW.csv", 
+                     col_names = T)%>% 
+  filter(feature == 'gene') %>% 
+  filter(., !grepl('ENSG', gene_name)) %>% 
+  arrange(gene_name) %>% 
   distinct(gene_name)
-GTS_gar_genes = read_tsv('GTS_CSWY_FST_0.5%_outlier_gene_names_only_NEW.tsv', 
-                         col_names = F)%>% 
-  distinct(X1) %>% 
-  separate(X1, 
-           c('gene_name', 
-             'trash'),
-           sep = '-') %>% 
-  dplyr::select(-trash) %>% 
+  
+GTS_gar_genes = read_csv('GTS_CSWY_FST_0.5%_outlier_genes_NEW.csv', 
+                         col_names = T)%>% 
+  filter(feature == 'gene') %>% 
+  filter(., !grepl('ENSG', gene_name)) %>% 
+  arrange(gene_name) %>% 
   distinct(gene_name)
+
+
+list_out_gene = list(ASHN_genes$gene_name, 
+                    MYV_genes$gene_name, 
+                    SKR_genes$gene_name, 
+                    GTS_gar_genes$gene_name)
+
+
+out_gene_venn = ggVennDiagram(list_out_gene, 
+                             label_alpha = 0,
+                             label = 'count',
+                             category.names = c("ASHN - Young",
+                                                "MYV - Old",
+                                                "SKR - Young", 
+                                                'GTS/GAR - Old'),
+                             label_size = 4, 
+                             set_color = c("#00798c",
+                                           "#d1495b",
+                                           "#30638e",
+                                           "#edae49"))+
+  scale_fill_gradient(low = "#ffffff", high = "#ffffff")+ 
+  scale_x_continuous(expand = expansion(mult = .2))+
+  theme_void()+
+  theme(
+    text = element_text(size = 4), 
+    legend.position = 'none')
+
+
+
+
 
 ## ASHN vs myv
 ((0/401)+(0/393)) * 0.5
@@ -115,7 +178,61 @@ GTS_gar_genes = read_tsv('GTS_CSWY_FST_0.5%_outlier_gene_names_only_NEW.tsv',
 ((3/434) + (3/460))*0.5
 
 
+# simulated example data --------------------------------------------------
 
+sim_data = read_csv("VENN_simulated_data.csv")
+
+sim_ASHN = sim_data %>% 
+  filter(ecotype_pair == 'ASHN') %>% 
+  dplyr::select(SNP)
+sim_SKR = sim_data %>% 
+  filter(ecotype_pair == 'SKR')%>% 
+  dplyr::select(SNP)
+sim_MYV = sim_data %>% 
+  filter(ecotype_pair == 'MYV')%>% 
+  dplyr::select(SNP)
+sim_GTS = sim_data %>% 
+  filter(ecotype_pair == 'GTS')%>% 
+  dplyr::select(SNP)
+
+
+# intersect(sim_GTS,
+#           sim_MYV) %>%
+#   intersect(.,
+#             sim_GTS) %>%
+#   intersect(.,
+#             sim_GTS)
+
+list_out_sim = list(sim_ASHN$SNP, 
+                     sim_MYV$SNP, 
+                     sim_SKR$SNP, 
+                     sim_GTS$SNP)
+
+ggVennDiagram(list_out_sim, 
+              label_alpha = 0,
+              label = 'count',
+              category.names = c("ASHN - Young",
+                                 "MYV - Old",
+                                 "SKR - Young", 
+                                 'GTS/GAR - Old'),
+              label_size = 4, 
+              set_color = c("#00798c",
+                            "#d1495b",
+                            "#30638e",
+                            "#edae49"))+
+  scale_fill_gradient(low = "#ffffff", high = "#ffffff")+ 
+  scale_x_continuous(expand = expansion(mult = .2))+
+  theme_void()+
+  theme(
+    text = element_text(size = 4), 
+    legend.position = 'none')
+
+
+# combine venn diagrams ---------------------------------------------------
+out_loc_venn
+out_gene_venn
+
+out_loc_venn/out_gene_venn
 
 # Sorensen dice similarity index - loci ------------------------------------------
 
