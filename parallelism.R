@@ -59,8 +59,9 @@ out_loc_venn = ggVennDiagram(list_out_loc,
   scale_x_continuous(expand = expansion(mult = .2))+
   theme_void()+
   theme(
-  text = element_text(size = 4), 
-  legend.position = 'none')
+  text = element_text(size = 14), 
+  legend.position = 'none')+
+  labs(title = "F) Parallelism of outlier loci")
 
 
 # parallelism per loci ----------------------------------------------------
@@ -152,8 +153,9 @@ out_gene_venn = ggVennDiagram(list_out_gene,
   scale_x_continuous(expand = expansion(mult = .2))+
   theme_void()+
   theme(
-    text = element_text(size = 4), 
-    legend.position = 'none')
+    text = element_text(size = 14), 
+    legend.position = 'none')+
+  labs(title = "G) Parallelism of genes")
 
 
 
@@ -208,7 +210,7 @@ list_out_sim = list(sim_ASHN$SNP,
                      sim_SKR$SNP, 
                      sim_GTS$SNP)
 
-ggVennDiagram(list_out_sim, 
+out_sim_venn = ggVennDiagram(list_out_sim, 
               label_alpha = 0,
               label = 'count',
               category.names = c("ASHN - Young",
@@ -224,15 +226,22 @@ ggVennDiagram(list_out_sim,
   scale_x_continuous(expand = expansion(mult = .2))+
   theme_void()+
   theme(
-    text = element_text(size = 4), 
-    legend.position = 'none')
+    text = element_text(size = 14), 
+    legend.position = 'none')+
+  labs(title = "E) Predicted level of parallelism")
 
 
 # combine venn diagrams ---------------------------------------------------
-out_loc_venn
-out_gene_venn
 
-out_loc_venn/out_gene_venn
+venn_combo = out_sim_venn/out_loc_venn/out_gene_venn
+venn_combo = out_sim_venn + out_loc_venn + out_gene_venn
+
+ggsave('VennDiagram_Genomic_Parallelism.svg', 
+       plot = venn_combo, 
+       dpi = 'retina', 
+       units = 'cm', 
+       width = 45, 
+       height = 15)
 
 # Sorensen dice similarity index - loci ------------------------------------------
 
