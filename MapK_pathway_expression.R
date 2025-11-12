@@ -17,7 +17,7 @@ brain_f1_exp = read_csv('BRAIN_BH_FDR_GLMER_ecotemp_pval0.05.csv')
 
 liver_f1_exp = read_csv('LIVER_BH_FDR_GLMER_ecotemp_pval0.05.csv')
 
-liver_eco_temp_pop_inter = read_csv("")
+# liver_eco_temp_pop_inter = read_csv("")
 # brain_f1_exp %>% 
 #   filter(str_detect(gene_name, 'map'))
 # 
@@ -292,9 +292,9 @@ liver_mapk_log_norm_counts_clean = liver_mapk_norm_counts_log %>%
 
 liver_mapk_means = liver_mapk_log_norm_counts_clean %>% 
   group_by(gene_name,
-           temp, 
-           # ecotype
-           ecopop
+           temp,
+           ecotype,
+           # ecopop
            ) %>% 
   summarize(mean_expression = mean(log_count))
   
@@ -328,9 +328,10 @@ expression_cols = c('#003049',
           panel.grid.major.y = element_blank(),
           panel.grid.minor.y = element_blank(),
           # panel.grid.major = element_blank(), 
-          strip.background = element_rect(fill = 'white'))
+          strip.background = element_rect(fill = 'white'), 
+          strip.text = element_text(face = 'italic'))
 
- ggsave('Liver_Mapk_expression_temp_divergence.svg', 
+ ggsave('Liver_Mapk_expression_temp_divergence_FIXED.svg', 
         plot = liver_mapk_expression_plot, 
         dpi = 'retina', 
         units = 'cm', 
@@ -612,7 +613,7 @@ hyb_expression_cols = c('#003049',
                         '#c1121f')
 
 mapk_hyb_gene_expression = hybrid_div_key_genes %>% 
-  mutate_if(is.character, toupper) %>%
+  mutate_if(is.character, tolower) %>%
   ggplot(aes(x = temp, 
              y = logFC, 
              col = div, 
@@ -628,9 +629,10 @@ mapk_hyb_gene_expression = hybrid_div_key_genes %>%
         panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank(),
         # panel.grid.major = element_blank(), 
-        strip.background = element_rect(fill = 'white'))
+        strip.background = element_rect(fill = 'white'), 
+        strip.text = element_text(face = 'italic'))
 
-ggsave('Mapk_expression_hybrid_genes.svg', 
+ggsave('Mapk_expression_hybrid_genes_FIXED.svg', 
        plot = mapk_hyb_gene_expression, 
        dpi = 'retina', 
        units = 'cm', 

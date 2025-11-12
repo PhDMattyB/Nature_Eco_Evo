@@ -342,7 +342,7 @@ admix_pal = c('#3a5a40', ##lake 10
               '#D1495B', ## MYV
               '#344e41',
               '#b5e48c', ##Marine (HERD)
-              
+              'black',
               '#dad7cd', ## lake 4
               '#EDAE49', #GTS
               
@@ -393,17 +393,23 @@ admix_data = populations %>%
         c('popeco', 
           'ind'), 
         sep = "_", 
-        remove =F)
+        remove =F) %>% 
+  dplyr::select(popeco_ind, K1:K11)
 
 admix_data_reshaped = reshape2::melt(admix_data, 
-     id.vars = c('popeco', 
-                 'ind')) %>% 
+     # id.vars = c('popeco', 
+     #             'ind')) %>%
+     id.vars = c('popeco_ind')) %>% 
   as_tibble() %>% 
-  unite(popeco_ind, 
-        c('popeco', 
-          'ind'), 
-        sep = "_", 
-        remove =F) %>% 
+  separate(popeco_ind, 
+           into = c('popeco', 
+                    'ind'), 
+           remove = F) %>% 
+  # unite(popeco_ind, 
+  #       c('popeco', 
+  #         'ind'), 
+  #       sep = "_", 
+  #       remove =F) %>% 
   rename(THEPOPS = popeco, 
          THEINDS = ind, 
          THECOMBO = popeco_ind)
@@ -423,14 +429,14 @@ admixture_plot = ggplot(data = admix_data_reshaped,
   theme(axis.text.y = element_text(color = 'black', 
                                    size = 12),
         axis.title.y = element_text(size = 14),
-        axis.text.x = element_blank(),
+        # axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         ## can add xaxis labels if needed
-        # axis.text.x = element_text(angle = 90,
-        #                            hjust = 1,
-        #                            vjust = -0.09,
-        #                            size = 6,
-        #                            color = 'black'),
+        axis.text.x = element_text(angle = 90,
+                                   hjust = 1,
+                                   vjust = -0.09,
+                                   size = 6,
+                                   color = 'black'),
         legend.position = 'none'
         )+
   scale_x_discrete(guide = guide_axis(n.dodge = 5))+
